@@ -7,6 +7,7 @@
     <script src="//unpkg.com/react-dom/umd/react-dom.production.min.js"></script>
     <script src="//unpkg.com/babel-standalone"></script>
     <script src="//unpkg.com/react-globe.gl"></script>
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="data.js"></script>
   </head>
   
@@ -21,6 +22,19 @@
       const [places, setPlaces] = useState({ features: []});
       const [altitude, setAltitude] = useState(0.1);
       const [transitionDuration, setTransitionDuration] = useState(1000);
+
+      function showInfo(name, description){
+        globeEl.current.controls().autoRotate = false;
+        Swal.fire({
+          title: name,
+          text: description,
+          showCloseButton: true,
+          showCancelButton: false,
+          showConfirmButton: false,
+        }).then((result) => {
+          globeEl.current.controls().autoRotate = true;
+        })
+      }
   
       useEffect(() => {
         if(data){
@@ -31,7 +45,7 @@
       useEffect(() => {
         // Auto-rotate
         globeEl.current.controls().autoRotate = true;
-        globeEl.current.controls().autoRotateSpeed = 0.25;
+        globeEl.current.controls().autoRotateSpeed = 0.15;
       }, []);
   
       return <Globe
@@ -43,11 +57,12 @@
         labelsData={places.features}
         labelLat={d => d.properties.latitude}
         labelLng={d => d.properties.longitude}
-        labelText={d => d.properties.name}
+        labelText={d => ''}
         labelSize={d => Math.sqrt(d.properties.pop_max) * 4e-4}
         labelDotRadius={d => Math.sqrt(d.properties.pop_max) * 4e-4}
         labelColor={() => 'red'}
         labelResolution={2}
+        onLabelClick={(d) => showInfo(d.properties.name, d.properties.description)}
       />;
     };
   
