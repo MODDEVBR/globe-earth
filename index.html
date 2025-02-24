@@ -1,74 +1,91 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
-    <style> body { margin: 0; padding: 0; } </style>
-  
-    <script src="//unpkg.com/react/umd/react.production.min.js"></script>
-    <script src="//unpkg.com/react-dom/umd/react-dom.production.min.js"></script>
-    <script src="//unpkg.com/babel-standalone"></script>
-    <script src="//unpkg.com/react-globe.gl"></script>
-    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta charset="UTF-8" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+
+    <!-- Carrega React e ReactDOM (versão 18) -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Carrega Babel para transformar o JSX -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <!-- Carrega a biblioteca react-globe.gl -->
+    <script src="https://unpkg.com/react-globe.gl"></script>
+    <!-- Carrega SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Carrega o arquivo data.js que define a variável global 'data' -->
     <script src="data.js"></script>
   </head>
-  
-  <body>
-  <div id="globeViz"></div>
-  
-  <script type="text/jsx">
-    const { useState, useEffect, useRef } = React;
-  
-    const World = () => {
-      const globeEl = useRef();
-      const [places, setPlaces] = useState({ features: []});
-      const [altitude, setAltitude] = useState(0.1);
-      const [transitionDuration, setTransitionDuration] = useState(1000);
 
-      function showInfo(name, description){
-        globeEl.current.controls().autoRotate = false;
-        Swal.fire({
-          text: description,
-          showCloseButton: true,
-          showCancelButton: false,
-          showConfirmButton: false,
-        }).then((result) => {
-          globeEl.current.controls().autoRotate = true;
-        })
-      }
-  
-      useEffect(() => {
-        if(data){
-          setPlaces(data);
+  <body>
+    <div id="globeViz"></div>
+
+    <script type="text/babel">
+      const { useState, useEffect, useRef } = React;
+      
+      // Obtemos o componente Globe do objeto global
+      const Globe = window.Globe;
+
+      const World = () => {
+        const globeEl = useRef(null);
+        const [places, setPlaces] = useState({ features: [] });
+        
+        function showInfo(name, description) {
+          // Pausa a rotação automática enquanto a caixa de diálogo está aberta
+          globeEl.current.controls().autoRotate = false;
+          Swal.fire({
+            text: description,
+            showCloseButton: true,
+            showCancelButton: false,
+            showConfirmButton: false,
+          }).then(() => {
+            globeEl.current.controls().autoRotate = true;
+          });
         }
-      }, [data]);
-  
-      useEffect(() => {
-        // Auto-rotate
-        globeEl.current.controls().autoRotate = true;
-        globeEl.current.controls().autoRotateSpeed = 0.15;
-      }, []);
-  
-      return <Globe
-        ref={globeEl}
-        globeImageUrl="//unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
-        bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-        backgroundImageUrl="//unpkg.com/three-globe/example/img/night-sky.png"
-  
-        labelsData={places.features}
-        labelLat={d => d.properties.latitude}
-        labelLng={d => d.properties.longitude}
-        labelText={d => ''}
-        labelSize={d => Math.sqrt(d.properties.pop_max) * 4e-4}
-        labelDotRadius={d => Math.sqrt(d.properties.pop_max) * 4e-4}
-        labelColor={() => 'red'}
-        labelResolution={2}
-        onLabelClick={(d) => showInfo(d.properties.name, d.properties.description)}
-      />;
-    };
-  
-    ReactDOM.render(
-      <World />,
-      document.getElementById('globeViz')
-    );
-  </script>
+
+        useEffect(() => {
+          // Verifica se a variável global 'data' foi definida no data.js
+          if (window.data) {
+            setPlaces(window.data);
+          }
+        }, []);
+
+        useEffect(() => {
+          if (globeEl.current) {
+            // Configura a rotação automática
+            globeEl.current.controls().autoRotate = true;
+            globeEl.current.controls().autoRotateSpeed = 0.15;
+          }
+        }, []);
+
+        return (
+          <Globe
+            ref={globeEl}
+            globeImageUrl="https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg"
+            bumpImageUrl="https://unpkg.com/three-globe/example/img/earth-topology.png"
+            backgroundImageUrl="https://unpkg.com/three-globe/example/img/night-sky.png"
+            labelsData={places.features}
+            labelLat={d => d.properties.latitude}
+            labelLng={d => d.properties.longitude}
+            labelText={d => ''}
+            labelSize={d => Math.sqrt(d.properties.pop_max) * 4e-4}
+            labelDotRadius={d => Math.sqrt(d.properties.pop_max) * 4e-4}
+            labelColor={() => 'red'}
+            labelResolution={2}
+            onLabelClick={d => showInfo(d.properties.name, d.properties.description)}
+          />
+        );
+      };
+
+      ReactDOM.render(
+        <World />,
+        document.getElementById('globeViz')
+      );
+    </script>
   </body>
 </html>
